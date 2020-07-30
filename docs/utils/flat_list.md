@@ -1,11 +1,11 @@
 ## utils/flat_list.py
 ```
-sub(s)
+def flat_list(nestedList):
 ```
 ##
 #### Description
 ##
 #### Examples
 ```
-sub('0')
+flat_list(x)
 ```
