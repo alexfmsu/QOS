@@ -1,11 +1,11 @@
 ## utils/MkDir.py
 ```
-mkdir(dirname)
+def mkdir(dirname)
 ```
 ##
 #### Description
 ##
 #### Examples
 ```
-mkdir(dirname)
+mkdir('folder_1')
 ```
