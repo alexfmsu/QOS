@@ -1,6 +1,6 @@
 ## utils/MkDir.py
 ```
-def mkdir(dirname)
+def mkdir(dirname):
 ```
 ##
 #### Description
