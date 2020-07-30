@@ -42,27 +42,11 @@ if not os.path.isfile(path):
 
 config = load_pkg("config", path)
 
-mkdir(config.outpath)
+outpath = 'out'
 
-exit(0)
-
-outpath += '/' + '_'.join([
-    'boom',
-    str(np.round(1 / t_drain, 1)) + 'ns',
-    '1mks',
-    str('0.01g'),
-    str(l_a_range[0]),
-    str(l_a_range[-1]),
-])
-mkdir(outpath)
-
-# print(a)
-print('nt =', nt)
-print('t_drain =', t_drain)
-
-print(outpath)
-
-ro_err = 0.01
+if mpirank == 0:
+    mkdir(outpath)
+    print('outpath:', outpath)
 # END----------------------------------------------------- CONFIG -----------------------------------------------------
 
 
@@ -76,53 +60,13 @@ def operator_L(ro, lindblad):
     def b(ro):
         nonlocal L, Lcross, LcrossL, l
 
-        # L1 = 0
-        # L2 = 0
-        # print("ro.data")
-        # print(ro.data.todense())
-        # print(np.shape(ro.data))
-        # print()
-        # print("L.data")
-        # print(L.data.todense())
-        # print()
-
-        # L_ro = Matrix(m=ro.m, n=ro.n, dtype=np.complex128)
-        # L_ro = np.matrix((np.shape(ro)[0], np.shape(ro)[0]))
-        # L_ro = csc_matrix(L_ro)
         L1 = (L.data.dot(ro.data)).dot(Lcross.data)
         L1 = csc_matrix(L1)
-        # print("L1.data")
-        # print(L1.todense())
-        # print(np.shape(L1))
-        # print()
 
-        # L2 = np.dot(ro.data, LcrossL)
-        # print(L2.todense())
         L2 = np.dot(ro.data, LcrossL) + np.dot(LcrossL, ro.data)
         L2 = csc_matrix(L2)
-        # print("L2.data")
-        # print(L2.todense())
-        # print(np.shape(L2))
-        # print()
-        # L2 = csc_matrix(L2)
-        # print("L2.data")
-        # print(L2.todense())
-        # print()
 
-        # # exit(0)
-        # print(L1.todense())
-        # print()
-        # print()
-        # print()
-        # print(L2.todense())
-        # print()
-        # print()
-        # print()
-
-        # exit()
         L_ro = l * (L1 - 0.5 * L2)
-        # L_ro = l * csc_matrix(L1 - 0.5 * L2, dtype=np.complex128)
-        # print(type(L_ro), np.shape(L_ro))
 
         return L_ro
 
@@ -131,11 +75,11 @@ def operator_L(ro, lindblad):
 # ---------------------------------------------------------------------------------------------------------------------
 # сток фотона
 a = [
-    # |0⟩|-⟩|0⟩|+⟩  |0⟩|0⟩|1⟩|-⟩	|0⟩|1⟩|0⟩|-⟩	|1⟩|0⟩|0⟩|-⟩
-    [			0, 		  	  0,			  0, 			  0],  # |0⟩|-⟩|0⟩|+⟩
-    [			0, 		  	  0,			  0, 			  1],  # |0⟩|0⟩|1⟩|-⟩
-    [			0, 		  	  0,			  0, 			  0],  # |0⟩|1⟩|0⟩|-⟩
-    [			0, 		  	  0,			  0, 			  0],  # |1⟩|0⟩|0⟩|-⟩
+    # |0⟩|-⟩|0⟩|+⟩  |0⟩|0⟩|1⟩|-⟩    |0⟩|1⟩|0⟩|-⟩    |1⟩|0⟩|0⟩|-⟩
+    [           0,            0,              0,              0],  # |0⟩|-⟩|0⟩|+⟩
+    [           0,            0,              0,              1],  # |0⟩|0⟩|1⟩|-⟩
+    [           0,            0,              0,              0],  # |0⟩|1⟩|0⟩|-⟩
+    [           0,            0,              0,              0],  # |1⟩|0⟩|0⟩|-⟩
 ]
 # a = np.matrix(a)
 a = csc_matrix(a, dtype=np.complex128)
@@ -144,10 +88,10 @@ a = Matrix(m=np.shape(a)[0], n=np.shape(a)[0], dtype=np.complex128, data=a)
 # разрушение атома
 A = [
     # |0⟩|-⟩|0⟩|+⟩  |0⟩|0⟩|1⟩|-⟩    |0⟩|1⟩|0⟩|-⟩    |1⟩|0⟩|0⟩|-⟩
-    [			0, 		  	  0,			  1, 			  0],  # |0⟩|-⟩|0⟩|+⟩
-    [			0, 		  	  0,			  0, 			  0],  # |0⟩|0⟩|1⟩|-⟩
-    [			0, 		  	  0,			  0, 			  0],  # |0⟩|1⟩|0⟩|-⟩
-    [			0, 		  	  0,			  0, 			  0],  # |1⟩|0⟩|0⟩|-⟩
+    [           0,            0,              1,              0],  # |0⟩|-⟩|0⟩|+⟩
+    [           0,            0,              0,              0],  # |0⟩|0⟩|1⟩|-⟩
+    [           0,            0,              0,              0],  # |0⟩|1⟩|0⟩|-⟩
+    [           0,            0,              0,              0],  # |1⟩|0⟩|0⟩|-⟩
 ]
 # A = np.matrix(A)
 A = csc_matrix(A, dtype=np.complex128)
@@ -157,11 +101,11 @@ A = Matrix(m=np.shape(A)[0], n=np.shape(A)[0], dtype=np.complex128, data=A)
 # BEGIN--------------------------------------------------- CAVITIES ---------------------------------------------------
 atom = Atom(
     wa={'1': wc},
-    g={'0<->1': g},
+    g={'0<->1': config.g},
 )
 
 cv = Cavity(
-    wc={'0<->1': wc},
+    wc={'0<->1': config.wc},
     atoms=[atom],
     sink=[
         {
@@ -197,7 +141,7 @@ H = qs.H()
 
 
 # BEGIN--------------------------------------------------- UNITARY ----------------------------------------------------
-U = Unitary(H=H, dt=dt)
+U = Unitary(H=H, dt=config.dt)
 # U.print()
 
 U_conj = U.conj()
@@ -223,65 +167,84 @@ ro_0 = DensityMatrix(w0)
 
 
 sink_a_list = []
-sink_A_list = []
 
+# print(len(config.l_a_range))
+def node_func():
+    l_a_range = n_batches(config.l_a_range)
+    print(l_a_range)
+    
+    sink_A_list = []
 
-for l_a_coeff in l_a_range:
-    print(l_a_coeff)
+    for l_a_coeff in l_a_range:
+        node_print(l_a_coeff, mpirank)
 
-    ro_t = deepcopy(ro_0)
+        ro_t = deepcopy(ro_0)
 
-    L_out_A = operator_L(ro_t, {
-        'L': A,
-        'l': lA_0
-    })
-    L_out_a = operator_L(ro_t, {
-        'L': a,
-        'l': lA_0 * l_a_coeff
-    })
+        L_out_A = operator_L(ro_t, {
+            'L': A,
+            'l': config.lA_0
+        })
+        L_out_a = operator_L(ro_t, {
+            'L': a,
+            'l': config.lA_0 * l_a_coeff
+        })
 
-    sink_a_tmp = []
-    sink_A_tmp = []
+        sink_a_tmp = []
+        sink_A_tmp = []
 
-    t = 0
-    cnt = 0
+        t = 0
 
-    while cnt <= nt:
-        # while t <= time_limit:
-        diag_abs = ro_t.diag_abs()
-        # print(np.round(diag_abs, 3))
+        t_list = []
 
-        trace = ro_t.abs_trace()
-        # print(trace)
+        while t <= config.time_limit:
+            diag_abs = ro_t.diag_abs()
+            # print(np.round(diag_abs, 3))
 
-        Assert(abs(1 - trace) <= ro_err, 'ro is not normed')
+            trace = ro_t.abs_trace()
+            # print(trace)
 
-        sink_A = diag_abs[0]
-        # sink_a = diag_abs[1]
-        if cnt % t_drain == 0:
+            Assert(abs(1 - trace) <= config.ro_err, 'ro is not normed')
+
+            sink_A = diag_abs[0]
+            # sink_a = diag_abs[1]
+            # if cnt % t_drain == 0:
             sink_A_tmp.append(sink_A)
 
-            if l_a_coeff == l_a_range[0]:
-                t_list.append(round(t / dt / t_drain))
-        # print('sink_a:', np.round(sink_a, 3), ', sink_A:', np.round(sink_A, 3), sep='')
+            #     if l_a_coeff == l_a_range[0]:
+            t_list.append(round(t / config.dt))
+            # print('sink_a:', np.round(sink_a, 3), ', sink_A:', np.round(sink_A, 3), sep='')
 
-        ro_t.evolve(
-            U=U,
-            U_conj=U_conj,
-            dt=dt,
-            L=L_out_a(ro_t) + L_out_A(ro_t),
-            renormalize=True
-        )
-        t += dt
-        cnt += 1
+            ro_t.evolve(
+                U=U,
+                U_conj=U_conj,
+                dt=config.dt,
+                L=L_out_a(ro_t) + L_out_A(ro_t),
+                renormalize=True
+            )
+            t += config.dt
 
-    # print(t_list)
-    # exit(0)
-    sink_A_list.append(sink_A_tmp)
+        sink_A_list.append(sink_A_tmp)
+    # sink_A_list.append(mpirank);
+    pickle_dump(sink_A_list, 'sink_A.pkl')
 
-pickle_dump(t_list, outpath + '/' + 't.pkl')
-pickle_dump(l_a_range, outpath + '/' + 'l.pkl')
-pickle_dump(sink_A_list, outpath + '/' + 'sink_A.pkl')
+    gather_file('out', 'sink_A.pkl')
+    # gather_file('out', 't.pkl')
+
+parallel_for(func=node_func, path='out', prefix='l_', var=config.l_a_range)
+
+if mpirank == 0:
+    t_list = []
+
+    t = 0
+
+    while t <= config.time_limit:
+        t_list.append(t)
+        t += config.dt
+
+    pickle_dump(t_list, outpath + '/' + 't.pkl')
+    pickle_dump(config.l_a_range, outpath + '/' + 'l_a_range.pkl')
+# pickle_dump(l_a_range, outpath + '/' + 'l.pkl')
+# pickle_dump(sink_A_list, outpath + '/' + 'sink_A.pkl')
 
 # =====================================================================================================================
 # =====================================================================================================================

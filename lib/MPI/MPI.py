@@ -9,8 +9,8 @@ from mpi4py import MPI
 MPI_COMM_WORLD = MPI.COMM_WORLD
 # =====================================================================================================================
 # PyQuantum.Tools
-from PyQuantum.Tools.Pickle import *
-from PyQuantum.Tools.Print import print
+from utils.Pickle import *
+from utils._print import print
 # =====================================================================================================================
 
 
@@ -71,21 +71,29 @@ def MPI_Barrier():
 # ---------------------------------------------------------------------------------------------------------------------
 # -------------------------------------------------------- N_BATCHES --------------------------------------------------
 # ---------------------------------------------------------------------------------------------------------------------
-def n_batches(N):
+def n_batches(l):
+    n = len(l)
+
     mpirank = MPI_Comm_rank()
     mpisize = MPI_Comm_size()
 
-    n_batches = int(ceil(N / mpisize))
+    n_batches = int(n / mpisize)
 
     n1 = mpirank * n_batches
+    n2 = n1
+
+    if n % mpisize != 0 and mpirank <= n % mpisize:
+        n1 += mpirank
+        n2 += mpirank+1
 
     if mpirank == mpisize - 1:
-        n2 = N
+        n2 = n
     else:
-        n2 = n1 + n_batches
-    # n_batches = N - mpirank * n_batches
+        n2 += n_batches
+    # n2 = n1 + n_batches
 
-    return n1, n2
+    # return '[' + str(n1) + ',' + str(n2) + ']'
+    return l[n1:n2]
 # ---------------------------------------------------------------------------------------------------------------------
 # ---------------------------------------------------------------------------------------------------------------------
 
@@ -93,21 +101,23 @@ def n_batches(N):
 # ---------------------------------------------------------------------------------------------------------------------
 # -------------------------------------------------------- GATHER_FILE ------------------------------------------------
 # ---------------------------------------------------------------------------------------------------------------------
-def gather_file(path, filename, range_):
+def gather_file(path, filename):
     if not hasattr(gather_file, '_mpirank'):
         gather_file._mpirank = mpirank = MPI_Comm_rank()
 
     MPI_Barrier()
 
+    os.chdir('..')
+
     if mpirank == 0:
         data = []
 
-        for i in range_:
-            data_i = pickle_load(path + '/' + filename + '_' + str(i) + '.pkl')
+        for node_ii in range(gather_file._mpirank):
+            data_i = pickle_load(path + '/' + str(node_i) + '/' + filename)
 
             data += data_i
 
-        pickle_dump(data, path + '/' + filename + '.pkl')
+        pickle_dump(data, filename)
 
     MPI_Barrier()
 # ---------------------------------------------------------------------------------------------------------------------
