@@ -124,7 +124,8 @@ class PlotBuilderData3D:
 
             y_ticktext = [''] * len(self.y['ticktext'])
 
-            # print(self.y['data'])
+            # print('data:', self.y['data'])
+            # exit(0)
             if self.y['ticktext'][0] != 0:
                 y_ticktext[0] = self.y['ticktext'][0]
                 print(y_ticktext)

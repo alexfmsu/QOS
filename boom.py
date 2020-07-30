@@ -168,15 +168,16 @@ ro_0 = DensityMatrix(w0)
 
 sink_a_list = []
 
-# print(len(config.l_a_range))
+if mpirank == 0:
+    print(config.l_a_range)
 def node_func():
     l_a_range = n_batches(config.l_a_range)
-    print(l_a_range)
+    print(mpirank, ': ', l_a_range, sep='')
     
     sink_A_list = []
 
     for l_a_coeff in l_a_range:
-        node_print(l_a_coeff, mpirank)
+        print(l_a_coeff, mpirank)
 
         ro_t = deepcopy(ro_0)
 
@@ -186,15 +187,15 @@ def node_func():
         })
         L_out_a = operator_L(ro_t, {
             'L': a,
-            'l': config.lA_0 * l_a_coeff
+            'l': config.la_0 * l_a_coeff
         })
 
-        sink_a_tmp = []
+        # sink_a_tmp = []
         sink_A_tmp = []
 
         t = 0
 
-        t_list = []
+        # t_list = []
 
         while t <= config.time_limit:
             diag_abs = ro_t.diag_abs()
@@ -210,8 +211,9 @@ def node_func():
             # if cnt % t_drain == 0:
             sink_A_tmp.append(sink_A)
 
+            # print(t, sink_A)
             #     if l_a_coeff == l_a_range[0]:
-            t_list.append(round(t / config.dt))
+            # t_list.append(round(t / config.dt))
             # print('sink_a:', np.round(sink_a, 3), ', sink_A:', np.round(sink_A, 3), sep='')
 
             ro_t.evolve(
@@ -219,14 +221,15 @@ def node_func():
                 U_conj=U_conj,
                 dt=config.dt,
                 L=L_out_a(ro_t) + L_out_A(ro_t),
-                renormalize=True
+                renormalize=False
             )
             t += config.dt
 
         sink_A_list.append(sink_A_tmp)
     # sink_A_list.append(mpirank);
     pickle_dump(sink_A_list, 'sink_A.pkl')
-
+    # print(mpirank, 123)
+    # print(mpirank, sink_A_list)
     gather_file('out', 'sink_A.pkl')
     # gather_file('out', 't.pkl')
 

@@ -80,17 +80,16 @@ def n_batches(l):
     n_batches = int(n / mpisize)
 
     n1 = mpirank * n_batches
-    n2 = n1
+    n2 = n1+n_batches
 
-    if n % mpisize != 0 and mpirank <= n % mpisize:
-        n1 += mpirank
-        n2 += mpirank+1
-
-    if mpirank == mpisize - 1:
-        n2 = n
-    else:
-        n2 += n_batches
-    # n2 = n1 + n_batches
+    if n % mpisize != 0:
+        if mpirank < n % mpisize:
+            n1 += mpirank
+            n2 += mpirank+1
+        else:
+            pass
+            n1 += n % mpisize
+            n2 += n % mpisize
 
     # return '[' + str(n1) + ',' + str(n2) + ']'
     return l[n1:n2]
@@ -107,17 +106,23 @@ def gather_file(path, filename):
 
     MPI_Barrier()
 
-    os.chdir('..')
+    pwd = os.getcwd()
 
     if mpirank == 0:
+        # os.chdir('..')
+        # print(os.getcwd())
+        os.chdir('..')
+        # print(os.getcwd())
         data = []
-
-        for node_ii in range(gather_file._mpirank):
-            data_i = pickle_load(path + '/' + str(node_i) + '/' + filename)
-
+        for node_i in range(MPI_Comm_size()):
+            # print('123')
+            data_i = pickle_load('node_' + str(node_i) + '/' + filename)
+            # print(data_i)
             data += data_i
 
         pickle_dump(data, filename)
+
+        os.chdir(pwd)
 
     MPI_Barrier()
 # ---------------------------------------------------------------------------------------------------------------------

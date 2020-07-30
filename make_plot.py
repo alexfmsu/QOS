@@ -1,6 +1,5 @@
 from utils.Pickle import *
 from utils.PlotBuilder3D import *
-# import numpy as np
 
 if len(sys.argv) < 2:
     print('Usage: python3 make_plot.py <path>')
@@ -12,6 +11,7 @@ if not os.path.isdir(path):
     exit(0)
 
 print('path:', path)
+
 # exit(0)
 # x_data = [5, 6, 7]
 # y_data = [8, 9]
@@ -23,19 +23,25 @@ print('path:', path)
 #     [1, 1, 1],
 #     [10, 10, 10],
 # ]
-y_data = pickle_load(path + '/' + 'l.pkl')
+
+y_data = pickle_load(path + '/' + 'l_a_range.pkl')
 x_data = pickle_load(path + '/' + 't.pkl')
 z_data = pickle_load(path + '/' + 'sink_A.pkl')
 
 y_data = np.array(y_data, dtype=float)
 x_data = np.array(x_data, dtype=float)
+
 # x_data = list(x_data)
-z_data = list(z_data)
+# z_data = list(z_data)
 
 # y_data[0] = 0
-print(x_data)
-print(y_data)
+# print('x_data:')
+# print(x_data)
+# print('y_data:')
+# print(y_data)
+# print('z_data:')
 # print(z_data)
+# exit(0)
 # z = np.round(z_data, 3)
 for i in range(len(z_data)):
     # z_data[i] = list(np.round(z_data[i], 0))
