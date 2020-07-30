@@ -1,6 +1,6 @@
 ## utils/sub.py
 ```
-sub(s)
+def sub(s):
 ```
 ##
 #### Description
